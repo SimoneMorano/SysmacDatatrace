@@ -1,11 +1,11 @@
 import pandas as pd
 import streamlit as st 
 import matplotlib.pyplot as plt
-import plotly as ply
 
 st.set_page_config(
     page_title="Sysmac servo Nodes",
     page_icon="👋",
+    layout="wide"
 )
 
 uploaded_files = st.file_uploader("Choose a CSV file")

@@ -3,18 +3,31 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 st.set_page_config(
-    page_title="Sysmac Axes",
+    page_title="Robot",
     page_icon="👋",
     layout="wide"
 )
 
-uploaded_files = st.file_uploader("Choose a CSV file")
+#uploaded_files = st.file_uploader("Choose a txt file")
 
-print(uploaded_files)
+uploaded_files = st.text_input('Input file path')
 
 if uploaded_files:
-    data_trace = pd.read_csv(uploaded_files, sep=',', header=19)
-    data_trace_1 = data_trace.drop(['Index', 'Date', 'ClockTime', 'RawTime', 'TraceSampID'], axis = 'columns')
+    file = open(uploaded_files, "r")
+    content = file.read()
+    file.close()
+
+    content = content.replace('\t\t','\t')
+
+    content = content.replace('\t',',')
+    content = content.replace(',\n','\n')
+
+    file_uno = open("temp.csv", "w")
+    file_uno.write(content)
+    file_uno.close()
+
+    data_trace_1 = pd.read_csv('temp.csv', sep = ',')
+    data_trace_1 = data_trace_1.drop(['Time'], axis = 'columns')
 
     for index in range(len(data_trace_1.columns)):
         data_trace_1[data_trace_1.columns[index]] = data_trace_1[data_trace_1.columns[index]].replace(',','.',regex=True)
