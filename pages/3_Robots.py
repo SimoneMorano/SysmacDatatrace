@@ -58,3 +58,25 @@ if uploaded_files:
 
     ax1.legend()
     st.pyplot(fig1)
+    
+    while False:
+        #uploaded_files = st.file_uploader("Choose a txt file")
+
+        #uploaded_files = st.text_input('Input file path')
+
+        uploaded_file = st.file_uploader("Choose a txt file")
+        if uploaded_file:
+            temp_dir = tempfile.mkdtemp()
+            st.write(temp_dir)
+            path = os.path.join(temp_dir, uploaded_file.name)
+            st.write(path)
+        
+            with open(path, "wb") as f:
+                f.write(uploaded_file.getvalue())
+                f.close()
+        
+            with open(path, "r") as file:
+                content = file.read()
+                file.close()
+                st.write(content)
+
