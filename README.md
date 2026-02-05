@@ -23,7 +23,7 @@ L’app si apre nel browser (di solito `http://localhost:8501`).
 - **Sysmac Axes** – Per CSV Data Trace degli assi (header alla riga 20):
   - Caricamento CSV e scelta dell’intervallo di righe con uno slider.
   - **Grafico 2D**: più variabili, scala Y configurabile, opzione min/max per normalizzare.
-  - **Grafico 3D** (Plotly): scelta di X, Y, Z tra le variabili del CSV; possibilità di aggiungere più serie (Serie 1, Serie 2, …) nello stesso grafico. In tooltip: indice di riga e valori degli assi.
+  - **Grafico 3D**: scelta di X, Y, Z tra le variabili del CSV; possibilità di aggiungere più serie (Serie 1, Serie 2, …) nello stesso grafico. In tooltip: indice di riga e valori degli assi.
 - **Sysmac Nodes** – Per CSV Data Trace dei nodi servo (header alla riga 9):
   - Stessa logica di caricamento e intervallo; grafici 2D con più variabili e opzione min/max.
 
@@ -55,6 +55,5 @@ L’app si apre nel browser (di solito `http://localhost:8501`).
 
 - `pandas` – lettura e elaborazione CSV  
 - `streamlit` – interfaccia web  
-- `matplotlib` – grafici 2D  
-- `plotly` – grafici 3D interattivi (solo Sysmac Axes)
+- `plotly` – grafici 2D e 3D interattivi
 
