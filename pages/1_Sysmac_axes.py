@@ -1,14 +1,17 @@
 import pandas as pd
 import streamlit as st
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 st.set_page_config(
     page_title="Sysmac Axes",
     page_icon="👋",
-    layout="wide",
+    layout="wide"
 )
 
 uploaded_files = st.file_uploader("Choose a CSV file")
+
+print(uploaded_files)
 
 if uploaded_files:
     data_trace = pd.read_csv(uploaded_files, sep=',', header=19)
@@ -20,43 +23,29 @@ if uploaded_files:
 
     values = st.slider("Select a range of values", 0.0, float(len(data_trace_1)), (0.0, float(len(data_trace_1))))
     options = st.multiselect("Seleziona la variabile del Grafico", data_trace_1.columns)
-    options_check = st.selectbox("Variabile Scala Y", options) if options else None
-
+    options_check = st.selectbox("Variabile Scala Y", options)
     minmax = st.checkbox("minmax")
     data_trace_2 = data_trace_1.loc[values[0]:values[1]]
 
-    if minmax and options and options_check:
+    fig1, ax1 = plt.subplots(figsize=(20,8))
+    ax1.set_xlabel('X')
+    ax1.set_ylabel('Y')
+    ax1.set_title('Grafico')
+
+    if minmax:
         for option in options:
             max1 = data_trace_2[options_check].max()
             min1 = data_trace_2[options_check].min()
-            max_val = data_trace_2[option].max()
-            min_val = data_trace_2[option].min()
-            data_trace_2[option] = data_trace_2[option].apply(lambda x : ((x - min_val) / (max_val - min_val)) * (max1 - min1) + min1)
+            max = data_trace_2[option].max()
+            min = data_trace_2[option].min()
+            data_trace_2[option] = data_trace_2[option].apply(lambda x : ((x - min) / (max - min)) * (max1 - min1) + min1)
+            ax1.plot(data_trace_2[option], label = option)
+    else:
+        for option in options:
+            ax1.plot(data_trace_2[option], label = option)
 
-    traces_2d = []
-    x_index = data_trace_2.index.values
-    for option in options:
-        traces_2d.append(
-            go.Scatter(
-                x=x_index,
-                y=data_trace_2[option].values,
-                mode="lines",
-                name=option,
-            )
-        )
-
-    fig1 = go.Figure(
-        data=traces_2d,
-        layout=go.Layout(
-            title=dict(text="Grafico"),
-            xaxis_title="X",
-            yaxis_title="Y",
-            height=500,
-            showlegend=True,
-            margin=dict(l=60, r=20, b=50, t=50),
-        ),
-    )
-    st.plotly_chart(fig1, width="stretch")
+    ax1.legend()
+    st.pyplot(fig1)
 
     # --- Grafico 3D ---
     st.subheader("Grafico 3D")
@@ -121,8 +110,9 @@ if uploaded_files:
                     zaxis_title=axis_z_first or "Z",
                 ),
                 margin=dict(l=0, r=0, b=0, t=40),
-                height=900,
+                height=600,
                 showlegend=True,
             ),
         )
-        st.plotly_chart(fig2, width="stretch")
+        st.plotly_chart(fig2, use_container_width=True)
+    plt.close(fig1)
