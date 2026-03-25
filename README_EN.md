@@ -26,6 +26,11 @@ The app opens in your browser (usually `http://localhost:8501`).
   - **3D chart** (Plotly): choose X, Y, and Z from the CSV variables; option to add more series (Series 1, Series 2, …) in the same plot. Tooltip shows row index and axis values.
 - **Sysmac Nodes** – For servo node Data Trace CSV files:
   - The header row (containing "Index" and "Offset") is detected automatically in the first lines, even with extra parameter rows or quoted fields. 2D charts with multiple variables and min/max option.
+- **General Plotly 2D** – For generic `;`-separated CSV files (including very large files):
+  - **Plotly 2D line chart**.
+  - **X axis** = global row number (from 0 to the last file row).
+  - Row range selection and **downsampling** to keep plots responsive on big datasets.
+  - For files >200MB, use **Local CSV path** (reads directly from disk, no upload).
 
 ### How to use the app
 
@@ -50,6 +55,11 @@ The app opens in your browser (usually `http://localhost:8501`).
 
 5. **Sysmac Nodes**
    - Same steps as the Sysmac Axes 2D chart: upload CSV, set the range with the slider, choose variables, and optionally **Variabile Scala Y** and **minmax**. The header (Index, Offset) is detected automatically.
+
+6. **General Plotly 2D**
+   - If the CSV is large, paste its path into **Local CSV path** (the Streamlit uploader is limited to 200MB).
+   - Select one or more columns in **Y columns** (by default all columns are disabled).
+   - Adjust row range and downsampling if needed.
 
 ### Dependencies
 

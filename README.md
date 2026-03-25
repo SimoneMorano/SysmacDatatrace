@@ -26,6 +26,11 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
   - **Grafico 3D** (Plotly): scelta di X, Y, Z tra le variabili del CSV; possibilità di aggiungere più serie (Serie 1, Serie 2, …) nello stesso grafico. In tooltip: indice di riga e valori degli assi.
 - **Sysmac Nodes** – Per CSV Data Trace dei nodi servo:
   - L'intestazione (riga con "Index" e "Offset") viene cercata automaticamente nelle prime righe, anche con parametri aggiuntivi o virgolette. Grafici 2D con più variabili e opzione min/max.
+- **General Plotly 2D** – Per CSV generici separati da `;` (file anche molto grandi):
+  - **Grafico 2D Plotly** con linee.
+  - **Asse X** = numero di riga globale (da 0 all’ultima riga del file).
+  - Selezione dell’intervallo righe e **downsample** per mantenere il grafico reattivo su file molto grandi.
+  - Per file >200MB usare **Local CSV path** (lettura diretta da disco, senza upload).
 
 ### Come usare l'applicazione
 
@@ -50,6 +55,11 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
 
 5. **Sysmac Nodes**
    - Stessi passi del grafico 2D di Sysmac Axes: carica il CSV, imposta l'intervallo con lo slider, scegli le variabili, eventualmente **Variabile Scala Y** e **minmax**. L'header (Index, Offset) viene rilevato automaticamente.
+
+6. **General Plotly 2D**
+   - Inserisci il percorso in **Local CSV path** se il file è grande (lo `streamlit file_uploader` ha limite 200MB).
+   - Seleziona le colonne da plottare in **Y columns** (di default sono tutte disabilitate).
+   - Imposta intervallo righe e downsample se necessario.
 
 ### Dipendenze
 
