@@ -28,9 +28,15 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
   - L'intestazione (riga con "Index" e "Offset") viene cercata automaticamente nelle prime righe, anche con parametri aggiuntivi o virgolette. Grafici 2D con più variabili e opzione min/max.
 - **General Plotly 2D** – Per CSV generici separati da `;` (file anche molto grandi):
   - **Grafico 2D Plotly** con linee.
-  - **Asse X** = numero di riga globale (da 0 all’ultima riga del file).
+  - **Multi-file**: puoi caricare più CSV e selezionare colonne da file diversi nello stesso grafico (legenda `file | colonna`).
+  - **Asse X**:
+    - se **timestamp** è disattivo: tempo calcolato da **cycle time** (con cycle time diverso per ogni file) + possibilità di **shift X per file** (in righe) per sovrapporre le curve.
+    - se **timestamp** è attivo: usa la **prima colonna** di ciascun file come timestamp, con scelta dell’**unità** per timestamp numerici (epoch): `s`, `ms`, `us`, `ns`.
+  - **Riferimento**: il file con più righe definisce il range massimo; i file più corti si interrompono quando finiscono.
+  - Le curve fuori dal range X del riferimento non vengono mostrate (clipping a sinistra/destra).
   - Selezione dell’intervallo righe e **downsample** per mantenere il grafico reattivo su file molto grandi.
-  - Per file >200MB usare **Local CSV path** (lettura diretta da disco, senza upload).
+  - Gestione robusta di CSV con righe “sporche” (es. `;;;;` finali): le righe vengono normalizzate per evitare disallineamenti tra **legenda** e **dati**.
+  - Per file >200MB usare **Local CSV paths** (uno per riga) (lettura diretta da disco, senza upload).
 
 ### Come usare l'applicazione
 
@@ -57,8 +63,11 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
    - Stessi passi del grafico 2D di Sysmac Axes: carica il CSV, imposta l'intervallo con lo slider, scegli le variabili, eventualmente **Variabile Scala Y** e **minmax**. L'header (Index, Offset) viene rilevato automaticamente.
 
 6. **General Plotly 2D**
-   - Inserisci il percorso in **Local CSV path** se il file è grande (lo `streamlit file_uploader` ha limite 200MB).
-   - Seleziona le colonne da plottare in **Y columns** (di default sono tutte disabilitate).
+   - Carica più CSV con l’upload (max 200MB ciascuno) oppure inserisci più percorsi in **Local CSV paths** (uno per riga).
+   - Seleziona le colonne da plottare in **Y columns (multi-file)** (di default sono tutte disabilitate).
+   - Se vuoi usare il timestamp, abilita **Use each file first column as timestamp (X axis)**.
+   - Se il timestamp è numerico (epoch), imposta **Timestamp unit (epoch)** (`s`, `ms`, `us`, `ns`) per interpretare correttamente l’asse X.
+   - Se il timestamp è disattivo, imposta **cycle time per file** e (opzionale) lo **shift X per file** per sovrapporre le curve.
    - Imposta intervallo righe e downsample se necessario.
 
 ### Dipendenze

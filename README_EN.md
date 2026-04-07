@@ -28,9 +28,15 @@ The app opens in your browser (usually `http://localhost:8501`).
   - The header row (containing "Index" and "Offset") is detected automatically in the first lines, even with extra parameter rows or quoted fields. 2D charts with multiple variables and min/max option.
 - **General Plotly 2D** – For generic `;`-separated CSV files (including very large files):
   - **Plotly 2D line chart**.
-  - **X axis** = global row number (from 0 to the last file row).
+  - **Multi-file**: load multiple CSVs and plot columns from different files on the same chart (legend format `file | column`).
+  - **X axis**:
+    - if **timestamp** mode is off: time is computed from **cycle time** (cycle time can be different per file) and you can apply an **X shift per file** (in rows) to align/overlap signals.
+    - if **timestamp** mode is on: uses the **first column** of each file as timestamp, with a selectable **epoch unit** for numeric timestamps: `s`, `ms`, `us`, `ns`.
+  - **Reference**: the file with the most rows defines the max range; shorter files stop when they end.
+  - Samples outside the reference X range are not shown (left/right clipping).
   - Row range selection and **downsampling** to keep plots responsive on big datasets.
-  - For files >200MB, use **Local CSV path** (reads directly from disk, no upload).
+  - Robust handling of “messy” CSV rows (e.g. trailing `;;;;`): rows are normalized to prevent **legend ↔ data** misalignment.
+  - For files >200MB, use **Local CSV paths** (one per line) (reads directly from disk, no upload).
 
 ### How to use the app
 
@@ -57,8 +63,11 @@ The app opens in your browser (usually `http://localhost:8501`).
    - Same steps as the Sysmac Axes 2D chart: upload CSV, set the range with the slider, choose variables, and optionally **Variabile Scala Y** and **minmax**. The header (Index, Offset) is detected automatically.
 
 6. **General Plotly 2D**
-   - If the CSV is large, paste its path into **Local CSV path** (the Streamlit uploader is limited to 200MB).
-   - Select one or more columns in **Y columns** (by default all columns are disabled).
+   - Upload multiple CSVs (max 200MB each) or paste multiple paths into **Local CSV paths** (one per line).
+   - Select one or more columns in **Y columns (multi-file)** (by default all columns are disabled).
+   - To use timestamps, enable **Use each file first column as timestamp (X axis)**.
+   - If the timestamp is numeric (epoch), set **Timestamp unit (epoch)** (`s`, `ms`, `us`, `ns`) to interpret the X axis correctly.
+   - If timestamp mode is off, set **cycle time per file** and optionally **X shift per file** to align/overlap signals.
    - Adjust row range and downsampling if needed.
 
 ### Dependencies
