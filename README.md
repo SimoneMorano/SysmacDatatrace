@@ -21,9 +21,9 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
 
 - **Home** – Pagina iniziale dell'app.
 - **Sysmac Axes** – Per CSV Data Trace degli assi (header alla riga 20):
-  - Caricamento CSV e scelta dell'intervallo di righe con uno slider.
-  - **Grafico 2D**: più variabili, scala Y configurabile, opzione min/max per normalizzare.
-  - **Grafico 3D** (Plotly): scelta di X, Y, Z tra le variabili del CSV; possibilità di aggiungere più serie (Serie 1, Serie 2, …) nello stesso grafico. In tooltip: indice di riga e valori degli assi.
+  - Caricamento di **uno o più CSV** e scelta dell'intervallo di righe con uno slider.
+  - **Grafico 2D**: più variabili, scala Y configurabile, opzione min/max per normalizzare. Selezione variabili con formato `file | colonna` per distinguere i file.
+  - **Grafico 3D** (Plotly): per ogni serie scegli anche il **file** oltre a X/Y/Z; possibilità di aggiungere più serie (Serie 1, Serie 2, …) nello stesso grafico. In tooltip: file, indice di riga e valori degli assi.
 - **Sysmac Nodes** – Per CSV Data Trace dei nodi servo:
   - L'intestazione (riga con "Index" e "Offset") viene cercata automaticamente nelle prime righe, anche con parametri aggiuntivi o virgolette. Grafici 2D con più variabili e opzione min/max.
 - **General Plotly 2D** – Per CSV generici separati da `;` (file anche molto grandi):
@@ -48,13 +48,13 @@ L'app si apre nel browser (di solito `http://localhost:8501`).
 
 3. **Sysmac Axes – Grafico 2D**
    - **Select a range of values**: trascina lo slider per limitare l'intervallo di righe da visualizzare.
-   - **Seleziona la variabile del Grafico**: scegli una o più variabili da plottare.
+   - **Seleziona la variabile del Grafico**: scegli una o più variabili da plottare (formato `file | colonna` se carichi più CSV).
    - **Variabile Scala Y**: scegli quale variabile usare come riferimento per la scala dell'asse Y (utile con *minmax*).
    - **minmax**: se attivo, normalizza tutte le curve nel range min–max della variabile scelta come scala Y, per confrontare forme con ordini di grandezza diversi.
    - Il grafico 2D si aggiorna in base a queste scelte.
 
 4. **Sysmac Axes – Grafico 3D**
-   - Per ogni **Serie** scegli **Asse X**, **Asse Y** e **Asse Z** tra le variabili del CSV (stesso intervallo di righe del grafico 2D).
+   - Per ogni **Serie** scegli **File**, **Asse X**, **Asse Y** e **Asse Z** tra le variabili del CSV (stesso intervallo di righe del grafico 2D).
    - **➕ Aggiungi altra serie 3D**: aggiunge una seconda (o terza, …) curva nello stesso grafico 3D, con un altro insieme di variabili X/Y/Z.
    - **➖ Rimuovi ultima serie**: toglie l'ultima serie aggiunta.
    - Sul grafico 3D puoi ruotare la vista, zoomare e fare pan. Passando il mouse sui punti vedi **Riga (indice)** (stesso indice dell'asse X del grafico 2D) e i valori delle tre variabili.

@@ -9,40 +9,87 @@ st.set_page_config(
     layout="wide"
 )
 
-uploaded_files = st.file_uploader("Choose a CSV file")
+uploaded_files = st.file_uploader("Choose one or more CSV files", type=["csv"], accept_multiple_files=True)
 
-print(uploaded_files)
+
+@st.cache_data(show_spinner=False)
+def _load_axes_csv(file_bytes: bytes) -> pd.DataFrame:
+    df = pd.read_csv(pd.io.common.BytesIO(file_bytes), sep=",", header=19)
+    df = df.drop(["Index", "Date", "ClockTime", "RawTime", "TraceSampID"], axis="columns", errors="ignore")
+
+    for c in df.columns:
+        # Sysmac exports may use comma as decimal separator
+        s = df[c]
+        if s.dtype == object:
+            s = s.replace(",", ".", regex=True)
+        df[c] = pd.to_numeric(s, errors="coerce", downcast="float")
+    return df
+
 
 if uploaded_files:
-    data_trace = pd.read_csv(uploaded_files, sep=',', header=19)
-    data_trace_1 = data_trace.drop(['Index', 'Date', 'ClockTime', 'RawTime', 'TraceSampID'], axis = 'columns')
+    entries: list[dict] = []
+    for uf in uploaded_files:
+        try:
+            df = _load_axes_csv(uf.getvalue())
+        except Exception as exc:
+            st.error(f"Cannot read '{uf.name}': {exc}")
+            continue
+        entries.append({"label": uf.name, "df": df})
 
-    for index in range(len(data_trace_1.columns)):
-        data_trace_1[data_trace_1.columns[index]] = data_trace_1[data_trace_1.columns[index]].replace(',','.',regex=True)
-        data_trace_1[data_trace_1.columns[index]] = pd.to_numeric(data_trace_1[data_trace_1.columns[index]], downcast="float") 
+    if not entries:
+        st.stop()
 
-    values = st.slider("Select a range of values", 0.0, float(len(data_trace_1)), (0.0, float(len(data_trace_1))))
-    options = st.multiselect("Seleziona la variabile del Grafico", data_trace_1.columns)
-    options_check = st.selectbox("Variabile Scala Y", options)
-    minmax = st.checkbox("minmax")
-    data_trace_2 = data_trace_1.loc[values[0]:values[1]]
+    max_len = max(len(e["df"]) for e in entries)
+    values = st.slider(
+        "Select a range of values",
+        0,
+        max(0, int(max_len) - 1),
+        (0, max(0, int(max_len) - 1)),
+    )
 
-    fig1, ax1 = plt.subplots(figsize=(20,8))
-    ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_title('Grafico')
+    trace_options: list[str] = []
+    for e in entries:
+        for c in e["df"].columns:
+            trace_options.append(f"{e['label']} | {c}")
 
-    if minmax:
-        for option in options:
-            max1 = data_trace_2[options_check].max()
-            min1 = data_trace_2[options_check].min()
-            max = data_trace_2[option].max()
-            min = data_trace_2[option].min()
-            data_trace_2[option] = data_trace_2[option].apply(lambda x : ((x - min) / (max - min)) * (max1 - min1) + min1)
-            ax1.plot(data_trace_2[option], label = option)
+    selected_traces = st.multiselect("Seleziona la variabile del Grafico", trace_options, default=[])
+    y_scale_ref = st.selectbox("Variabile Scala Y", selected_traces, disabled=len(selected_traces) == 0)
+    minmax = st.checkbox("minmax", value=False, disabled=len(selected_traces) == 0)
+
+    # Build a map trace_name -> series
+    series_map: dict[str, pd.Series] = {}
+    for token in selected_traces:
+        file_label, col = token.split(" | ", 1)
+        e = next((x for x in entries if x["label"] == file_label), None)
+        if e is None:
+            continue
+        df = e["df"]
+        if col not in df.columns:
+            continue
+        start_i, end_i = int(values[0]), int(values[1])
+        if start_i > len(df) - 1:
+            continue
+        end_i = min(end_i, len(df) - 1)
+        series_map[token] = df[col].iloc[start_i : end_i + 1].reset_index(drop=True)
+
+    fig1, ax1 = plt.subplots(figsize=(20, 8))
+    ax1.set_xlabel("X")
+    ax1.set_ylabel("Y")
+    ax1.set_title("Grafico")
+
+    if minmax and y_scale_ref in series_map:
+        ref = series_map[y_scale_ref]
+        ref_max = ref.max()
+        ref_min = ref.min()
+        for trace_name, s in series_map.items():
+            s_max = s.max()
+            s_min = s.min()
+            if pd.notna(s_max) and pd.notna(s_min) and s_max != s_min:
+                s = (s - s_min) / (s_max - s_min) * (ref_max - ref_min) + ref_min
+            ax1.plot(s, label=trace_name)
     else:
-        for option in options:
-            ax1.plot(data_trace_2[option], label = option)
+        for trace_name, s in series_map.items():
+            ax1.plot(s, label=trace_name)
 
     ax1.legend()
     st.pyplot(fig1)
@@ -68,30 +115,47 @@ if uploaded_files:
 
     for i in range(st.session_state.n_3d_series):
         st.markdown(f"**Serie {i + 1}**")
-        col_x, col_y, col_z = st.columns(3)
-        with col_x:
-            axis_x = st.selectbox("Asse X", data_trace_1.columns, key=f"3d_x_{i}")
-        with col_y:
-            axis_y = st.selectbox("Asse Y", data_trace_1.columns, key=f"3d_y_{i}")
-        with col_z:
-            axis_z = st.selectbox("Asse Z", data_trace_1.columns, key=f"3d_z_{i}")
+        row1_c1, row1_c2 = st.columns(2)
+        with row1_c1:
+            file_3d = st.selectbox(
+                "File",
+                [e["label"] for e in entries],
+                key=f"3d_file_{i}",
+            )
+        df_3d = next((e["df"] for e in entries if e["label"] == file_3d), entries[0]["df"])
+        cols_3d = list(df_3d.columns)
+        with row1_c2:
+            axis_x = st.selectbox("Asse X", cols_3d, key=f"3d_x_{i}")
+
+        row2_c1, row2_c2 = st.columns(2)
+        with row2_c1:
+            axis_y = st.selectbox("Asse Y", cols_3d, key=f"3d_y_{i}")
+        with row2_c2:
+            axis_z = st.selectbox("Asse Z", cols_3d, key=f"3d_z_{i}")
 
         if axis_x and axis_y and axis_z:
             if axis_x_first is None:
                 axis_x_first, axis_y_first, axis_z_first = axis_x, axis_y, axis_z
             color = colors_3d[i % len(colors_3d)]
-            row_index = data_trace_2.index.values
+            start_i, end_i = int(values[0]), int(values[1])
+            if start_i <= len(df_3d) - 1:
+                end_i = min(end_i, len(df_3d) - 1)
+                df3 = df_3d.iloc[start_i : end_i + 1]
+            else:
+                df3 = df_3d.iloc[0:0]
+            row_index = df3.index.values
             traces_3d.append(
                 go.Scatter3d(
-                    x=data_trace_2[axis_x].values,
-                    y=data_trace_2[axis_y].values,
-                    z=data_trace_2[axis_z].values,
+                    x=df3[axis_x].values if axis_x in df3.columns else [],
+                    y=df3[axis_y].values if axis_y in df3.columns else [],
+                    z=df3[axis_z].values if axis_z in df3.columns else [],
                     customdata=row_index,
                     mode="lines",
                     line=dict(color=color, width=2),
-                    name=f"Serie {i + 1}",
+                    name=f"{file_3d} | Serie {i + 1}",
                     hovertemplate=(
                         "<b>Riga (indice)</b>: %{customdata}<br>"
+                        f"<b>File</b>: {file_3d}<br>"
                         f"<b>{axis_x}</b>: %{{x:.4g}}<br>"
                         f"<b>{axis_y}</b>: %{{y:.4g}}<br>"
                         f"<b>{axis_z}</b>: %{{z:.4g}}<extra></extra>"

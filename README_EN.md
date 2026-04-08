@@ -21,9 +21,9 @@ The app opens in your browser (usually `http://localhost:8501`).
 
 - **Home** – App landing page.
 - **Sysmac Axes** – For axis Data Trace CSV files (header at row 20):
-  - Upload CSV and choose the row range with a slider.
-  - **2D chart**: multiple variables, configurable Y scale, min/max option to normalize curves.
-  - **3D chart** (Plotly): choose X, Y, and Z from the CSV variables; option to add more series (Series 1, Series 2, …) in the same plot. Tooltip shows row index and axis values.
+  - Upload **one or more CSVs** and choose the row range with a slider.
+  - **2D chart**: multiple variables, configurable Y scale, min/max option to normalize curves. Variable selection uses `file | column` to distinguish files.
+  - **3D chart** (Plotly): for each series you choose the **file** plus X/Y/Z; option to add more series (Series 1, Series 2, …) in the same plot. Tooltip shows file, row index and axis values.
 - **Sysmac Nodes** – For servo node Data Trace CSV files:
   - The header row (containing "Index" and "Offset") is detected automatically in the first lines, even with extra parameter rows or quoted fields. 2D charts with multiple variables and min/max option.
 - **General Plotly 2D** – For generic `;`-separated CSV files (including very large files):
@@ -48,13 +48,13 @@ The app opens in your browser (usually `http://localhost:8501`).
 
 3. **Sysmac Axes – 2D chart**
    - **Select a range of values**: use the slider to limit the row range to display.
-   - **Seleziona la variabile del Grafico**: choose one or more variables to plot.
+   - **Seleziona la variabile del Grafico**: choose one or more variables to plot (`file | column` when multiple CSVs are loaded).
    - **Variabile Scala Y**: choose which variable to use as the Y-axis scale reference (useful with *minmax*).
    - **minmax**: when enabled, normalizes all curves to the min–max range of the variable chosen as Y scale, to compare shapes with different magnitudes.
    - The 2D chart updates according to these choices.
 
 4. **Sysmac Axes – 3D chart**
-   - For each **Series**, choose **Asse X**, **Asse Y**, and **Asse Z** from the CSV variables (same row range as the 2D chart).
+   - For each **Series**, choose **File**, **Asse X**, **Asse Y**, and **Asse Z** from the CSV variables (same row range as the 2D chart).
    - **➕ Aggiungi altra serie 3D**: adds a second (or third, …) curve in the same 3D chart with another set of X/Y/Z variables.
    - **➖ Rimuovi ultima serie**: removes the last added series.
    - On the 3D chart you can rotate the view, zoom, and pan. Hovering over points shows **Row (index)** (same as the 2D chart X-axis index) and the three variable values.
