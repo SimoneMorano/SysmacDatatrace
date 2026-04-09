@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import numpy as np
 
 st.set_page_config(
     page_title="Sysmac Axes",
@@ -91,7 +92,8 @@ if uploaded_files:
         for trace_name, s in series_map.items():
             ax1.plot(s, label=trace_name)
 
-    ax1.legend()
+    if series_map:
+        ax1.legend()
     st.pyplot(fig1)
 
     # --- Grafico 3D ---
@@ -108,6 +110,14 @@ if uploaded_files:
         if st.session_state.n_3d_series > 1 and st.button("➖ Rimuovi ultima serie"):
             st.session_state.n_3d_series -= 1
             st.rerun()
+
+    line_thickness = st.radio(
+        "Spessore linea (3D)",
+        ["Fine", "Spessa"],
+        index=0,
+        horizontal=True,
+    )
+    line_width_3d = 2 if line_thickness == "Fine" else 6
 
     colors_3d = ["steelblue", "coral", "seagreen", "mediumpurple", "darkorange"]
     traces_3d = []
@@ -144,14 +154,30 @@ if uploaded_files:
             else:
                 df3 = df_3d.iloc[0:0]
             row_index = df3.index.values
+            x_raw = df3[axis_x].values if axis_x in df3.columns else np.array([])
+            y_raw = df3[axis_y].values if axis_y in df3.columns else np.array([])
+            z_raw = df3[axis_z].values if axis_z in df3.columns else np.array([])
+            x = np.asarray(x_raw, dtype="float64")
+            y = np.asarray(y_raw, dtype="float64")
+            z = np.asarray(z_raw, dtype="float64")
+            finite_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(z)
+            if finite_mask.size == 0 or finite_mask.sum() < 2:
+                st.warning(
+                    f"Serie {i + 1}: nessun punto valido (valori NaN/inf) per X/Y/Z nell'intervallo selezionato."
+                )
+                continue
+            x = x[finite_mask]
+            y = y[finite_mask]
+            z = z[finite_mask]
+            row_index = row_index[finite_mask]
             traces_3d.append(
                 go.Scatter3d(
-                    x=df3[axis_x].values if axis_x in df3.columns else [],
-                    y=df3[axis_y].values if axis_y in df3.columns else [],
-                    z=df3[axis_z].values if axis_z in df3.columns else [],
+                    x=x,
+                    y=y,
+                    z=z,
                     customdata=row_index,
                     mode="lines",
-                    line=dict(color=color, width=2),
+                    line=dict(color=color, width=line_width_3d),
                     name=f"{file_3d} | Serie {i + 1}",
                     hovertemplate=(
                         "<b>Riga (indice)</b>: %{customdata}<br>"
@@ -168,15 +194,18 @@ if uploaded_files:
             data=traces_3d,
             layout=go.Layout(
                 title=dict(text="Grafico 3D – più serie"),
+                template="plotly_white",
                 scene=dict(
                     xaxis_title=axis_x_first or "X",
                     yaxis_title=axis_y_first or "Y",
                     zaxis_title=axis_z_first or "Z",
+                    bgcolor="white",
                 ),
+                paper_bgcolor="white",
                 margin=dict(l=0, r=0, b=0, t=40),
                 height=600,
                 showlegend=True,
             ),
         )
-        st.plotly_chart(fig2, width="stretch")
+        st.plotly_chart(fig2, width="stretch", theme=None)
     plt.close(fig1)
